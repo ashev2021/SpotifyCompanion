@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { spotify } from "./spotify";
 import { z } from "zod";
 import { insertConversationSchema, insertMusicRecommendationSchema, insertVoiceCommandSchema, insertBiometricDataSchema } from "@shared/schema";
 import OpenAI from "openai";
@@ -25,7 +26,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         messages: [
           {
             role: "system",
-            content: "You are a music mood analyzer. Analyze the user's message and determine their mood, energy level, and music preferences. Respond with JSON in this format: { 'mood': string, 'energy': number (1-10), 'intent': string, 'recommendations': array of {trackName: string, artist: string, mood: string, energy: number} }"
+            content: "You are a music mood analyzer. Analyze the user's message and determine their mood, energy level, and music preferences. Generate search queries for finding real songs. Respond with JSON in this format: { 'mood': string, 'energy': number (1-10), 'intent': string, 'searchQueries': array of search terms like 'upbeat pop songs', 'happy energetic music', etc. }"
           },
           {
             role: "user",
@@ -62,19 +63,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mood: analysis.mood
       });
 
-      // Save music recommendations
+      // Search for real Spotify tracks based on AI analysis
       const recommendations = [];
-      if (analysis.recommendations && Array.isArray(analysis.recommendations)) {
-        for (const rec of analysis.recommendations) {
-          const recommendation = await storage.createMusicRecommendation({
-            conversationId: conversation.id,
-            trackName: rec.trackName,
-            artist: rec.artist,
-            mood: rec.mood,
-            energy: rec.energy,
-            metadata: rec
-          });
-          recommendations.push(recommendation);
+      if (analysis.searchQueries && Array.isArray(analysis.searchQueries)) {
+        for (const query of analysis.searchQueries.slice(0, 2)) { // Limit to 2 search queries
+          try {
+            const spotifyTracks = await spotify.searchTracks(query, 3);
+            for (const track of spotifyTracks) {
+              const recommendation = await storage.createMusicRecommendation({
+                conversationId: conversation.id,
+                trackName: track.name,
+                artist: track.artists.map(a => a.name).join(', '),
+                mood: analysis.mood,
+                energy: analysis.energy,
+                metadata: {
+                  spotify_id: track.id,
+                  spotify_uri: track.uri,
+                  preview_url: track.preview_url,
+                  external_url: track.external_urls.spotify,
+                  album_image: track.album.images[0]?.url,
+                  duration_ms: track.duration_ms
+                }
+              });
+              recommendations.push(recommendation);
+            }
+          } catch (error) {
+            console.error(`Failed to search Spotify for "${query}":`, error);
+          }
         }
       }
 
@@ -183,6 +198,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get recommendations error:", error);
       res.status(500).json({ error: "Failed to fetch recommendations" });
+    }
+  });
+
+  // Spotify authentication
+  app.get("/api/spotify/auth", (req, res) => {
+    const redirectUri = `${req.protocol}://${req.get('host')}/api/spotify/callback`;
+    const authUrl = spotify.generateAuthURL(redirectUri, 'spotify-auth');
+    res.json({ authUrl });
+  });
+
+  app.get("/api/spotify/callback", async (req, res) => {
+    const { code, state, error } = req.query;
+    
+    if (error) {
+      return res.redirect(`/?error=${error}`);
+    }
+
+    if (!code) {
+      return res.redirect(`/?error=missing_code`);
+    }
+
+    try {
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/spotify/callback`;
+      const tokens = await spotify.exchangeCodeForToken(code as string, redirectUri);
+      
+      // In a real app, you'd store these tokens securely
+      // For now, we'll pass them back to the frontend
+      res.redirect(`/?access_token=${tokens.access_token}&refresh_token=${tokens.refresh_token}`);
+    } catch (error) {
+      console.error("Spotify callback error:", error);
+      res.redirect(`/?error=auth_failed`);
+    }
+  });
+
+  // Spotify search endpoint
+  app.get("/api/spotify/search", async (req, res) => {
+    try {
+      const { q, limit = 10 } = req.query;
+      if (!q) {
+        return res.status(400).json({ error: "Query parameter 'q' is required" });
+      }
+      
+      const tracks = await spotify.searchTracks(q as string, parseInt(limit as string));
+      res.json({ tracks });
+    } catch (error) {
+      console.error("Spotify search error:", error);
+      res.status(500).json({ error: "Failed to search Spotify" });
+    }
+  });
+
+  // Spotify recommendations
+  app.post("/api/spotify/recommendations", async (req, res) => {
+    try {
+      const params = req.body;
+      const tracks = await spotify.getRecommendations(params);
+      res.json({ tracks });
+    } catch (error) {
+      console.error("Spotify recommendations error:", error);
+      res.status(500).json({ error: "Failed to get recommendations" });
     }
   });
 

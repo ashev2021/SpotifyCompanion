@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Mic, MicOff, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationPanel } from "@/components/conversation-panel";
-import { EnhancedMusicPlayer } from "@/components/enhanced-music-player";
+import { SpotifyMusicPlayer } from "@/components/spotify-music-player";
 import { MoodAnalysis } from "@/components/mood-analysis";
 import { VoiceCommands } from "@/components/voice-commands";
 import { BiometricSync } from "@/components/biometric-sync";
@@ -89,7 +89,7 @@ export default function MusicAgent() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <EnhancedMusicPlayer />
+          <SpotifyMusicPlayer />
           <VoiceCommands />
           <BiometricSync />
         </div>
