@@ -13,7 +13,13 @@ export function SpotifySetupGuide({ onClose }: SpotifySetupGuideProps) {
   const [copied, setCopied] = useState<string>("");
   const { toast } = useToast();
 
-  const redirectUri = `${window.location.origin}/api/spotify/callback`;
+  // For Replit deployment, use HTTPS; for localhost, show both options
+  const isReplit = window.location.hostname.includes('replit.app');
+  const redirectUri = isReplit 
+    ? `https://${window.location.host}/api/spotify/callback`
+    : `http://localhost:5000/api/spotify/callback`;
+  
+  const additionalUri = !isReplit ? `https://your-replit-domain.replit.app/api/spotify/callback` : null;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -46,25 +52,50 @@ export function SpotifySetupGuide({ onClose }: SpotifySetupGuideProps) {
     },
     {
       title: "Add Redirect URI",
-      description: "In your app settings, add this exact redirect URI:",
+      description: "In your app settings, add these exact redirect URIs:",
       action: (
-        <div className="space-y-2">
-          <div className="bg-black/20 rounded-lg p-3 font-mono text-sm text-spotify-green break-all">
-            {redirectUri}
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs text-spotify-light mb-2">For development:</p>
+            <div className="bg-black/20 rounded-lg p-3 font-mono text-sm text-spotify-green break-all">
+              {redirectUri}
+            </div>
+            <Button
+              onClick={() => copyToClipboard(redirectUri, "Development URI")}
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+            >
+              {copied === "Development URI" ? (
+                <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4 mr-2" />
+              )}
+              Copy Development URI
+            </Button>
           </div>
-          <Button
-            onClick={() => copyToClipboard(redirectUri, "Redirect URI")}
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            {copied === "Redirect URI" ? (
-              <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-            ) : (
-              <Copy className="w-4 h-4 mr-2" />
-            )}
-            Copy Redirect URI
-          </Button>
+          
+          {additionalUri && (
+            <div>
+              <p className="text-xs text-spotify-light mb-2">For deployment:</p>
+              <div className="bg-black/20 rounded-lg p-3 font-mono text-sm text-spotify-green break-all">
+                {additionalUri}
+              </div>
+              <Button
+                onClick={() => copyToClipboard(additionalUri, "Deployment URI")}
+                variant="outline"
+                size="sm"
+                className="w-full mt-2"
+              >
+                {copied === "Deployment URI" ? (
+                  <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                ) : (
+                  <Copy className="w-4 h-4 mr-2" />
+                )}
+                Copy Deployment URI
+              </Button>
+            </div>
+          )}
         </div>
       )
     },
@@ -162,12 +193,23 @@ export function SpotifySetupGuide({ onClose }: SpotifySetupGuideProps) {
           </Button>
         </div>
 
-        <div className="mt-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-          <div className="flex items-start space-x-2">
-            <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-blue-300">
-              <strong>Note:</strong> You need a Spotify Premium subscription to use the Web Playback SDK for streaming music.
-            </p>
+        <div className="space-y-3 mt-4">
+          <div className="p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-yellow-300">
+                <strong>Security:</strong> Spotify requires HTTPS URLs for production. Use the deployment URI for live apps.
+              </p>
+            </div>
+          </div>
+          
+          <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-blue-300">
+                <strong>Premium Required:</strong> You need a Spotify Premium subscription to use the Web Playback SDK for streaming music.
+              </p>
+            </div>
           </div>
         </div>
       </div>

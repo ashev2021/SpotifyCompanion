@@ -203,7 +203,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Spotify authentication
   app.get("/api/spotify/auth", (req, res) => {
-    const redirectUri = `${req.protocol}://${req.get('host')}/api/spotify/callback`;
+    // Use HTTPS for Spotify authentication (required by Spotify)
+    const protocol = req.get('host')?.includes('replit.app') ? 'https' : 'http';
+    const redirectUri = `${protocol}://${req.get('host')}/api/spotify/callback`;
     const authUrl = spotify.generateAuthURL(redirectUri, 'spotify-auth');
     res.json({ authUrl });
   });
@@ -220,7 +222,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/spotify/callback`;
+      // Use HTTPS for Spotify authentication (required by Spotify)
+      const protocol = req.get('host')?.includes('replit.app') ? 'https' : 'http';
+      const redirectUri = `${protocol}://${req.get('host')}/api/spotify/callback`;
       const tokens = await spotify.exchangeCodeForToken(code as string, redirectUri);
       
       // In a real app, you'd store these tokens securely
