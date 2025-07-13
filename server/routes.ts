@@ -68,7 +68,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (analysis.searchQueries && Array.isArray(analysis.searchQueries)) {
         for (const query of analysis.searchQueries.slice(0, 2)) { // Limit to 2 search queries
           try {
-            const spotifyTracks = await spotify.searchTracks(query, 3);
+            const spotifyTracks = await spotify.searchTracks(query, 5);
             for (const track of spotifyTracks) {
               const recommendation = await storage.createMusicRecommendation({
                 conversationId: conversation.id,
@@ -82,7 +82,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   preview_url: track.preview_url,
                   external_url: track.external_urls.spotify,
                   album_image: track.album.images[0]?.url,
-                  duration_ms: track.duration_ms
+                  album_name: track.album.name,
+                  duration_ms: track.duration_ms,
+                  artist_names: track.artists.map(a => a.name)
                 }
               });
               recommendations.push(recommendation);

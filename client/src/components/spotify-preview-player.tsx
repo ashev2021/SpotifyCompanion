@@ -59,7 +59,9 @@ export function SpotifyPreviewPlayer({ className = "" }: SpotifyPreviewPlayerPro
         .map(rec => ({
           id: rec.metadata.spotify_id,
           name: rec.trackName,
-          artists: [{ name: rec.artist }],
+          artists: rec.metadata.artist_names ? 
+            rec.metadata.artist_names.map((name: string) => ({ name })) :
+            [{ name: rec.artist }],
           album: {
             name: rec.metadata.album_name || "Unknown Album",
             images: rec.metadata.album_image ? [{ url: rec.metadata.album_image }] : []
@@ -73,15 +75,25 @@ export function SpotifyPreviewPlayer({ className = "" }: SpotifyPreviewPlayerPro
         }));
       
       if (spotifyTracks.length > 0) {
-        setPlaylist(prev => [...prev, ...spotifyTracks]);
-        speak(`I found ${spotifyTracks.length} great ${mood} songs! Playing previews - click "Open in Spotify" for full tracks.`);
+        const newPlaylist = [...playlist, ...spotifyTracks];
+        setPlaylist(newPlaylist);
         
-        // Auto-play first track preview if nothing is currently playing
-        if (currentTrackIndex === -1 && spotifyTracks[0]?.preview_url) {
-          setCurrentTrackIndex(playlist.length);
+        // Auto-play first new track if nothing is currently playing
+        if (currentTrackIndex === -1 && spotifyTracks[0]) {
+          const firstNewTrackIndex = playlist.length;
+          setCurrentTrackIndex(firstNewTrackIndex);
+          
+          if (spotifyTracks[0].preview_url) {
+            setIsPlaying(true);
+            speak(`Playing "${spotifyTracks[0].name}" by ${spotifyTracks[0].artists.map(a => a.name).join(', ')}. I found ${spotifyTracks.length} ${mood} songs!`);
+          } else {
+            speak(`I found "${spotifyTracks[0].name}" and ${spotifyTracks.length - 1} other ${mood} songs. Click "Open in Spotify" to play full tracks.`);
+          }
+        } else {
+          speak(`Added ${spotifyTracks.length} great ${mood} songs to your playlist! Click any song to play its preview.`);
         }
       } else {
-        speak(`Found some ${mood} songs but previews aren't available. Check the playlist to open them in Spotify!`);
+        speak(`I found some ${mood} songs but they don't have previews available. Check the playlist to open them directly in Spotify!`);
       }
     },
     onError: (error) => {
@@ -115,15 +127,21 @@ export function SpotifyPreviewPlayer({ className = "" }: SpotifyPreviewPlayerPro
   // Update audio source when track changes
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !currentTrack?.preview_url) return;
+    if (!audio || !currentTrack?.preview_url) {
+      setIsPlaying(false);
+      return;
+    }
 
     audio.src = currentTrack.preview_url;
     audio.volume = volume / 100;
     
     if (isPlaying) {
-      audio.play().catch(console.error);
+      audio.play().catch((error) => {
+        console.error('Failed to play audio:', error);
+        setIsPlaying(false);
+      });
     }
-  }, [currentTrackIndex, currentTrack]);
+  }, [currentTrackIndex, currentTrack, isPlaying]);
 
   // Update volume
   useEffect(() => {
@@ -175,8 +193,16 @@ export function SpotifyPreviewPlayer({ className = "" }: SpotifyPreviewPlayerPro
   const playTrack = (track: SpotifyTrack, index: number) => {
     setCurrentTrackIndex(index);
     setCurrentTime(0);
+    
     if (track.preview_url) {
       setIsPlaying(true);
+      speak(`Playing "${track.name}" by ${track.artists.map(a => a.name).join(', ')}`);
+    } else {
+      setIsPlaying(false);
+      speak(`"${track.name}" doesn't have a preview. Opening in Spotify for full playback.`);
+      setTimeout(() => {
+        window.open(track.external_urls.spotify, '_blank');
+      }, 1000);
     }
   };
 
