@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, User, Play, Mic, Keyboard } from "lucide-react";
+import { Bot, User, Play, Mic, Keyboard, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
@@ -151,16 +151,27 @@ export function ConversationPanel() {
                           <p className="font-medium text-sm text-white">{rec.trackName}</p>
                           <p className="text-xs text-spotify-light">{rec.artist}</p>
                         </div>
-                        <Button
-                          size="sm"
-                          className="w-8 h-8 bg-spotify-green hover:bg-spotify-green/80 rounded-full p-0"
-                          onClick={() => {
-                            // In a real app, this would trigger the music player to play the track
-                            console.log(`Playing: ${rec.trackName} by ${rec.artist}`);
-                          }}
-                        >
-                          <Play className="w-3 h-3" />
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            size="sm"
+                            className="w-8 h-8 bg-spotify-green hover:bg-spotify-green/80 rounded-full p-0"
+                            onClick={() => {
+                              if (rec.metadata?.external_url) {
+                                window.open(rec.metadata.external_url, '_blank');
+                                speak(`Opening "${rec.trackName}" by ${rec.artist} in Spotify`);
+                              } else {
+                                console.log(`Playing: ${rec.trackName} by ${rec.artist}`);
+                                speak(`Playing "${rec.trackName}" by ${rec.artist}`);
+                              }
+                            }}
+                            title="Open in Spotify"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                          </Button>
+                          {rec.metadata?.preview_url && (
+                            <span className="text-xs text-spotify-light">Preview available</span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

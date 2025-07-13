@@ -85,12 +85,12 @@ export function SpotifyPreviewPlayer({ className = "" }: SpotifyPreviewPlayerPro
           
           if (spotifyTracks[0].preview_url) {
             setIsPlaying(true);
-            speak(`Playing "${spotifyTracks[0].name}" by ${spotifyTracks[0].artists.map(a => a.name).join(', ')}. I found ${spotifyTracks.length} ${mood} songs!`);
+            speak(`Playing "${spotifyTracks[0].name}" by ${spotifyTracks[0].artists.map(a => a.name).join(', ')}. I found ${spotifyTracks.length} ${mood} songs! You can also click tracks in the conversation to open them in Spotify.`);
           } else {
-            speak(`I found "${spotifyTracks[0].name}" and ${spotifyTracks.length - 1} other ${mood} songs. Click "Open in Spotify" to play full tracks.`);
+            speak(`I found "${spotifyTracks[0].name}" and ${spotifyTracks.length - 1} other ${mood} songs. Click tracks in the conversation or playlist to open them in Spotify.`);
           }
         } else {
-          speak(`Added ${spotifyTracks.length} great ${mood} songs to your playlist! Click any song to play its preview.`);
+          speak(`Added ${spotifyTracks.length} great ${mood} songs to your playlist! Click any song to play its preview or open in Spotify.`);
         }
       } else {
         speak(`I found some ${mood} songs but they don't have previews available. Check the playlist to open them directly in Spotify!`);
