@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat, Music, Heart, Plus, LogIn, LogOut, Loader2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat, Music, Heart, Plus, LogIn, LogOut, Loader2, Settings, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { SpotifySetupGuide } from "@/components/spotify-setup-guide";
 import { useSpotifyPlayer } from "@/hooks/use-spotify-player";
 import { useSpotifyAuth } from "@/hooks/use-spotify-auth";
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis";
@@ -36,6 +37,7 @@ export function SpotifyMusicPlayer({ className = "" }: SpotifyMusicPlayerProps) 
   const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off');
   const [likedTracks, setLikedTracks] = useState<Set<string>>(new Set());
   const [currentMood, setCurrentMood] = useState<string>("energetic");
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
   
   const queryClient = useQueryClient();
   const { speak } = useSpeechSynthesis();
@@ -199,39 +201,66 @@ export function SpotifyMusicPlayer({ className = "" }: SpotifyMusicPlayerProps) 
           {authError && (
             <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
               <p className="text-red-400 text-sm">{authError}</p>
-              <Button
-                onClick={clearError}
-                size="sm"
-                variant="ghost"
-                className="mt-2 text-red-400 hover:text-red-300"
-              >
-                Dismiss
-              </Button>
+              <div className="flex space-x-2 mt-3">
+                <Button
+                  onClick={() => setShowSetupGuide(true)}
+                  size="sm"
+                  variant="outline"
+                  className="text-red-400 border-red-400 hover:text-red-300 hover:border-red-300"
+                >
+                  <Settings className="w-3 h-3 mr-1" />
+                  Setup Guide
+                </Button>
+                <Button
+                  onClick={clearError}
+                  size="sm"
+                  variant="ghost"
+                  className="text-red-400 hover:text-red-300"
+                >
+                  Dismiss
+                </Button>
+              </div>
             </div>
           )}
           
-          <Button
-            onClick={login}
-            disabled={authLoading}
-            className="bg-spotify-green hover:bg-spotify-green/80 text-white px-6 py-3 rounded-full font-medium"
-          >
-            {authLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-4 h-4 mr-2" />
-                Connect Spotify
-              </>
-            )}
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={login}
+              disabled={authLoading}
+              className="bg-spotify-green hover:bg-spotify-green/80 text-white px-6 py-3 rounded-full font-medium flex-1"
+            >
+              {authLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Connect Spotify
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowSetupGuide(true)}
+              variant="outline"
+              className="px-3 py-3 rounded-full border-spotify-green/30 text-spotify-green hover:bg-spotify-green/10"
+            >
+              <HelpCircle className="w-4 h-4" />
+            </Button>
+          </div>
           
           <p className="text-spotify-light text-xs mt-4">
             Requires Spotify Premium subscription
           </p>
         </div>
+        
+        {/* Setup Guide Modal */}
+        <AnimatePresence>
+          {showSetupGuide && (
+            <SpotifySetupGuide onClose={() => setShowSetupGuide(false)} />
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -440,6 +469,13 @@ export function SpotifyMusicPlayer({ className = "" }: SpotifyMusicPlayerProps) 
           </div>
         </div>
       )}
+      
+      {/* Setup Guide Modal */}
+      <AnimatePresence>
+        {showSetupGuide && (
+          <SpotifySetupGuide onClose={() => setShowSetupGuide(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
