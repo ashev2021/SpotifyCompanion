@@ -10,6 +10,8 @@ import { VoiceWaveVisualizer } from "@/components/voice-wave-visualizer";
 import { MicrophonePermission } from "@/components/microphone-permission";
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition";
 
+import arezopic from "@assets/arezopic.png";
+
 export default function MusicAgent() {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [currentMood, setCurrentMood] = useState("energetic");
@@ -62,7 +64,7 @@ export default function MusicAgent() {
               
               <div className="flex items-center space-x-2">
                 <img 
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=32&h=32&q=80" 
+                  src={arezopic} 
                   alt="User profile" 
                   className="w-8 h-8 rounded-full border-2 border-spotify-green" 
                 />
@@ -72,7 +74,6 @@ export default function MusicAgent() {
           </div>
         </div>
       </header>
-
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Conversation Panel */}
@@ -94,7 +95,6 @@ export default function MusicAgent() {
           <BiometricSync />
         </div>
       </main>
-
       {/* Footer Player */}
       <footer className="bg-spotify-gray/50 backdrop-blur-md border-t border-spotify-gray/30 px-4 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
