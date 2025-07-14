@@ -68,7 +68,7 @@ export default function MusicAgent() {
                   alt="User profile" 
                   className="w-8 h-8 rounded-full border-2 border-spotify-green" 
                 />
-                <span className="text-sm font-medium">Alex</span>
+                <span className="text-sm font-medium">Arezo</span>
               </div>
             </div>
           </div>
