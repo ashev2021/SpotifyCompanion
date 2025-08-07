@@ -2,6 +2,9 @@
 
 A voice-activated AI music agent that combines intelligent conversation with real Spotify music discovery and playback. Built with React, TypeScript, Express.js, and OpenAI.
 
+<img width="1897" height="926" alt="image" src="https://github.com/user-attachments/assets/c91aa3d0-4aec-41cd-a801-1dc5521a4fe1" />
+
+
 ## 🚀 Features
 
 - **Voice-Activated Discovery**: Talk to the AI about your mood and get real music recommendations
