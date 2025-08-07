@@ -134,13 +134,4 @@ The app is configured for easy deployment on platforms like Replit, Vercel, or R
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 🙏 Acknowledgments
 
-- [OpenAI](https://openai.com) for GPT-4 AI capabilities
-- [Spotify](https://developer.spotify.com) for music data and playback
-- [shadcn/ui](https://ui.shadcn.com) for beautiful React components
-- [Replit](https://replit.com) for development environment
-
----
-
-**Note**: This project uses Spotify's preview system for development. For full streaming capabilities, deploy with HTTPS and implement Spotify Web Playback SDK authentication.
